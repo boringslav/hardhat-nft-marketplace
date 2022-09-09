@@ -8,6 +8,7 @@ error NftMarketplace__NotApprovedForMarletplace();
 error NftMarketplace__AlreadyListed(address nftAddress, uint256 tokenId);
 error NftMarketplace__NotOwner();
 error NftMarketplace__NotListed(address nftAddress, uint256 tokenId);
+error NftMarketplace__PriceNotMet(address nftAddress, uint256 tokenId, uint256 price);
 
 contract NftMatketplace {
     struct Listing {
@@ -21,9 +22,17 @@ contract NftMatketplace {
         uint256 indexed tokenId,
         uint256 price
     );
+    event ItemBought(
+        address indexed buyer,
+        address indexed nftAddress,
+        uint256 indexed tokenId,
+        uint256 price
+    );
 
     //NFT Contract address -> NFT TokenID -> Listing
     mapping(address => mapping(uint256 => Listing)) private s_listings;
+    //Seller address -> Amount earned
+    mapping(address => uint256) private s_proceeds;
 
     //Modifiers
     modifier notListed(
@@ -88,7 +97,30 @@ contract NftMatketplace {
         emit ItemListed(msg.sender, nftAddress, tokenId, price);
     }
 
-    function buyItem(address nftAddress, uint256 tokenId) external payable {}
+    function buyItem(address nftAddress, uint256 tokenId)
+        external
+        payable
+        isListed(nftAddress, tokenId)
+    {
+        Listing memory listedItem = s_listings[nftAddress][tokenId];
+        if (msg.value < listedItem.price) {
+            revert NftMarketplace__PriceNotMet(nftAddress, tokenId, listedItem.price);
+        }
+
+        //We don't just send the money to the seller
+        //https://fravoll.github.io/solidity-patterns/pull_over_push.html
+
+        //Sending the money to the user ❌
+        //Have the users withdraw their money ✅
+        s_proceeds[listedItem.seller] = s_proceeds[listedItem.seller] + msg.value;
+
+        //Remove the nft from the marketplace
+        delete (s_listings[nftAddress][tokenId]);
+
+        //Transfer the nft to the buyer
+        IERC721(nftAddress).safeTransferFrom(listedItem.seller, msg.sender, tokenId);
+        emit ItemBought(msg.sender, nftAddress, tokenId, listedItem.price);
+    }
 }
 /**
  *  1. `listItem`:List NFTs on the marketplace
