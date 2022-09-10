@@ -41,6 +41,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
           describe("Withdraw Proceeds", () => {
               it("Should revert with NoProceeds if the amount of the money for the address <=0", async () => {
                   expect(await nftMarketplace.withdrawProceeds()).to.be.revertedWithCustomError(
+                      nftMarketplace,
                       "NftMarketplace__NoProceeds"
                   )
               })
