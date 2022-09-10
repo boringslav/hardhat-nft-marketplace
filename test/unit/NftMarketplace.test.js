@@ -37,4 +37,17 @@ const { developmentChains } = require("../../helper-hardhat-config")
               assert(newOwner.toString() == player.address)
               assert(deployerProceeds.toString() == PRICE.toString())
           })
+
+          describe("Withdraw Proceeds", () => {
+              it("Should revert with NoProceeds if the amount of the money for the address <=0", async () => {
+                  expect(await nftMarketplace.withdrawProceeds()).to.be.revertedWithCustomError(
+                      "NftMarketplace__NoProceeds"
+                  )
+              })
+              it("Should revert with NoProceeds if the amount of the money for the address <=0 Pt2", async () => {
+                  expect(await nftMarketplace.withdrawProceeds()).to.be.revertedWith(
+                      "NftMarketplace__NoProceeds"
+                  )
+              })
+          })
       })
