@@ -10,8 +10,8 @@ const { developmentChains } = require("../../helper-hardhat-config")
           const TOKEN_ID = 0
 
           beforeEach(async () => {
-              deployer = (await getNamedAccounts()).deployer
               const accounts = await ethers.getSigners()
+              deployer = accounts[0]
               player = accounts[1]
               await deployments.fixture(["all"])
 
@@ -32,22 +32,38 @@ const { developmentChains } = require("../../helper-hardhat-config")
               })
 
               const newOwner = await basicNft.ownerOf(TOKEN_ID)
-              const deployerProceeds = await nftMarketplace.getProceeds(deployer)
+              const deployerProceeds = await nftMarketplace.getProceeds(deployer.address)
 
               assert(newOwner.toString() == player.address)
               assert(deployerProceeds.toString() == PRICE.toString())
           })
 
           describe("Withdraw Proceeds", () => {
-              it("Should revert with NoProceeds if the amount of the money for the address <=0", async () => {
-                  expect(await nftMarketplace.withdrawProceeds()).to.be.revertedWithCustomError(
-                      nftMarketplace,
+              it("Should revert with NoProceeds if the amount of the money for the address <=0 Pt2", async () => {
+                  await expect(nftMarketplace.withdrawProceeds()).to.be.revertedWith(
                       "NftMarketplace__NoProceeds"
                   )
               })
-              it("Should revert with NoProceeds if the amount of the money for the address <=0 Pt2", async () => {
-                  expect(await nftMarketplace.withdrawProceeds()).to.be.revertedWith(
-                      "NftMarketplace__NoProceeds"
+              it("Withdraws proceeds", async () => {
+                  await nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
+                  nftMarketplace.connect(player.address)
+                  await nftMarketplace.buyItem(basicNft.address, TOKEN_ID, { value: PRICE })
+                  nftMarketplace.connect(deployer.address)
+
+                  const deployerProceedsBefore = await nftMarketplace.getProceeds(deployer.address)
+                  const deployerBalanceBefore = await deployer.getBalance()
+                  const txResponse = await nftMarketplace.withdrawProceeds()
+                  const txReceipt = await txResponse.wait(1)
+
+                  const { gasUsed, effectiveGasPrice } = txReceipt
+                  const gasCost = gasUsed.mul(effectiveGasPrice)
+
+                  const deployerBalanceAfter = await deployer.getBalance()
+
+                  // gas is subtracted when withdrawing (we need to add it back)
+                  assert(
+                      deployerBalanceAfter.add(gasCost).toString() ==
+                          deployerProceedsBefore.add(deployerBalanceBefore).toString()
                   )
               })
           })
