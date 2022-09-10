@@ -7,10 +7,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
 
+    log("----------------------")
     const nftMarketplace = await deploy("NftMarketplace", {
         from: deployer,
         args: [],
-        logs: true,
+        log: true,
         waitConfirmations: network.config.blockConfirmations || 1,
     })
 
