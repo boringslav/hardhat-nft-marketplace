@@ -48,6 +48,14 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   assert(listing.price.toString() == PRICE.toString())
                   assert(listing.seller.toString() == deployer.address)
               })
+              it("Only the owner of the nft can list it for sale", async function () {
+                  nftMarketplace.connect(player.address)
+                  await basicNft.approve(player.address, TOKEN_ID)
+
+                  await expect(
+                      nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
+                  ).to.be.revertedWith("NotOwner")
+              })
           })
 
           describe("Withdraw Proceeds", () => {
