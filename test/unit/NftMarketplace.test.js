@@ -35,6 +35,19 @@ const { developmentChains } = require("../../helper-hardhat-config")
                       nftMarketplace.listItem(basicNft.address, TOKEN_ID, 0)
                   ).to.be.revertedWith("NftMarketplace__PriceMustBeAboveZero")
               })
+
+              it("Needs to be approved to be able to list items", async function () {
+                  await basicNft.approve(ethers.constants.AddressZero, TOKEN_ID)
+                  await expect(
+                      nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
+                  ).to.be.revertedWith("NotApprovedForMarketplace")
+              })
+              it("Updates listing with seller and price", async function () {
+                  await nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
+                  const listing = await nftMarketplace.getListing(basicNft.address, TOKEN_ID)
+                  assert(listing.price.toString() == PRICE.toString())
+                  assert(listing.seller.toString() == deployer.address)
+              })
           })
 
           describe("Withdraw Proceeds", () => {
