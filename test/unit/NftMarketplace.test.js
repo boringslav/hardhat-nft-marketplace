@@ -30,6 +30,11 @@ const { developmentChains } = require("../../helper-hardhat-config")
                       "ItemListed"
                   )
               })
+              it("Reverts with PriceMustBeAbove zero if the item is listed with price of 0", async () => {
+                  await expect(
+                      nftMarketplace.listItem(basicNft.address, TOKEN_ID, 0)
+                  ).to.be.revertedWith("NftMarketplace__PriceMustBeAboveZero")
+              })
           })
 
           describe("Withdraw Proceeds", () => {
