@@ -24,7 +24,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
               await basicNft.approve(nftMarketplace.address, TOKEN_ID)
           })
 
-          describe("ListItem", () => {
+          describe("listItem", () => {
               it("Emits an event after listing an item", async () => {
                   expect(await nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)).to.emit(
                       "ItemListed"
@@ -36,25 +36,38 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   ).to.be.revertedWith("NftMarketplace__PriceMustBeAboveZero")
               })
 
-              it("Needs to be approved to be able to list items", async function () {
+              it("Needs to be approved to be able to list items", async () => {
                   await basicNft.approve(ethers.constants.AddressZero, TOKEN_ID)
                   await expect(
                       nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
                   ).to.be.revertedWith("NotApprovedForMarketplace")
               })
-              it("Updates listing with seller and price", async function () {
+              it("Updates listing with seller and price", async () => {
                   await nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
                   const listing = await nftMarketplace.getListing(basicNft.address, TOKEN_ID)
                   assert(listing.price.toString() == PRICE.toString())
                   assert(listing.seller.toString() == deployer.address)
               })
-              it("Only the owner of the nft can list it for sale", async function () {
+              /**
+               * This test is failing with:
+               * Expected transaction to be reverted with NotOwner but reverting with NftMarketplace_NotapprovedForMarketPlace()
+               */
+              it("Only the owner of the nft can list it for sale", async () => {
                   nftMarketplace.connect(player.address)
                   await basicNft.approve(player.address, TOKEN_ID)
 
                   await expect(
                       nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
                   ).to.be.revertedWith("NotOwner")
+              })
+          })
+
+          describe("cancelListing", () => {
+              it("Reverts if there is no listing", async () => {
+                  const error = `NotListed("${basicNft.address}", ${TOKEN_ID})`
+                  await expect(
+                      nftMarketplace.cancelListing(basicNft.address, TOKEN_ID)
+                  ).to.be.revertedWith(error)
               })
           })
 
