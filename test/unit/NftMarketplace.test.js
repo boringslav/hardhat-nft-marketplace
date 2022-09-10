@@ -69,6 +69,17 @@ const { developmentChains } = require("../../helper-hardhat-config")
                       nftMarketplace.cancelListing(basicNft.address, TOKEN_ID)
                   ).to.be.revertedWith(error)
               })
+              /**
+               * This test is failing with:  AssertionError: Expected transaction to be reverted
+               */
+              it("Reverts if anyone but the owner tries to call", async () => {
+                  await nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
+                  nftMarketplace.connect(player.address)
+                  await basicNft.approve(player.address, TOKEN_ID)
+                  await expect(
+                      nftMarketplace.cancelListing(basicNft.address, TOKEN_ID)
+                  ).to.be.revertedWith("NotOwner")
+              })
           })
 
           describe("Withdraw Proceeds", () => {
