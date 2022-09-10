@@ -24,18 +24,12 @@ const { developmentChains } = require("../../helper-hardhat-config")
               await basicNft.approve(nftMarketplace.address, TOKEN_ID)
           })
 
-          it("Lists and withdraws", async () => {
-              await nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
-              const playerConnectedNftMarketplace = nftMarketplace.connect(player)
-              await playerConnectedNftMarketplace.buyItem(basicNft.address, TOKEN_ID, {
-                  value: PRICE,
+          describe("ListItem", () => {
+              it("Emits an event after listing an item", async () => {
+                  expect(await nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)).to.emit(
+                      "ItemListed"
+                  )
               })
-
-              const newOwner = await basicNft.ownerOf(TOKEN_ID)
-              const deployerProceeds = await nftMarketplace.getProceeds(deployer.address)
-
-              assert(newOwner.toString() == player.address)
-              assert(deployerProceeds.toString() == PRICE.toString())
           })
 
           describe("Withdraw Proceeds", () => {
