@@ -80,6 +80,14 @@ const { developmentChains } = require("../../helper-hardhat-config")
                       nftMarketplace.cancelListing(basicNft.address, TOKEN_ID)
                   ).to.be.revertedWith("NotOwner")
               })
+              it("Emits an event and removes listing", async () => {
+                  await nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
+                  expect(await nftMarketplace.cancelListing(basicNft.address, TOKEN_ID)).to.emit(
+                      "ItemCanceled"
+                  )
+                  const listing = await nftMarketplace.getListing(basicNft.address, TOKEN_ID)
+                  assert(listing.price.toString() == "0")
+              })
           })
 
           describe("Withdraw Proceeds", () => {
