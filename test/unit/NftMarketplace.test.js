@@ -100,10 +100,22 @@ const { developmentChains } = require("../../helper-hardhat-config")
               })
               it("Reverts when trying to buy an item that is not listed", async () => {
                   nftMarketplace.connect(player.address)
-
                   await expect(
                       nftMarketplace.buyItem(basicNft.address, TOKEN_ID, { value: PRICE })
                   ).to.be.revertedWith("NftMarketplace__NotListed")
+              })
+          })
+
+          describe("updateListing", () => {
+              it("Emits an event when the item is successfully updated, changes the price", async () => {
+                  await nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
+                  const NEW_PRICE = ethers.utils.parseEther("0.5")
+
+                  expect(
+                      await nftMarketplace.updateListing(basicNft.address, TOKEN_ID, NEW_PRICE)
+                  ).to.emit("ItemListed")
+                  const listing = await nftMarketplace.getListing(basicNft.address, TOKEN_ID)
+                  assert(listing.price.toString() == NEW_PRICE.toString())
               })
           })
 
