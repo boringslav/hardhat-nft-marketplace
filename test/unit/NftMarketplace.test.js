@@ -98,6 +98,13 @@ const { developmentChains } = require("../../helper-hardhat-config")
                       await nftMarketplace.buyItem(basicNft.address, TOKEN_ID, { value: PRICE })
                   ).to.emit("ItemBought")
               })
+              it("Reverts when trying to buy an item that is not listed", async () => {
+                  nftMarketplace.connect(player.address)
+
+                  await expect(
+                      nftMarketplace.buyItem(basicNft.address, TOKEN_ID, { value: PRICE })
+                  ).to.be.revertedWith("NftMarketplace__NotListed")
+              })
           })
 
           describe("withdrawProceeds", () => {
