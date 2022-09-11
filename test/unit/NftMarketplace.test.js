@@ -90,7 +90,17 @@ const { developmentChains } = require("../../helper-hardhat-config")
               })
           })
 
-          describe("Withdraw Proceeds", () => {
+          describe("buyItem", () => {
+              it("Emits an event when the item is successfully bought", async () => {
+                  await nftMarketplace.listItem(basicNft.address, TOKEN_ID, PRICE)
+                  nftMarketplace.connect(player.address)
+                  expect(
+                      await nftMarketplace.buyItem(basicNft.address, TOKEN_ID, { value: PRICE })
+                  ).to.emit("ItemBought")
+              })
+          })
+
+          describe("withdrawProceeds", () => {
               it("Should revert with NoProceeds if the amount of the money for the address <=0 Pt2", async () => {
                   await expect(nftMarketplace.withdrawProceeds()).to.be.revertedWith(
                       "NftMarketplace__NoProceeds"
