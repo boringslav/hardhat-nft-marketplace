@@ -1,7 +1,8 @@
 const { ethers, network } = require("hardhat")
 const { moveBlocks } = require("../utils/move-blocks")
 
-const TOKEN_ID = 2 //Check moralis api to see which Listing tokenId you want to delete
+const TOKEN_ID = 2
+//Check moralis api to see which Listing tokenId you want to delete
 ;(async () => {
     const nftMarketplace = await ethers.getContract("NftMarketplace")
     const basicNft = await ethers.getContract("BasicNft")
